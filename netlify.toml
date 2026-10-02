@@ -1,0 +1,4 @@
+# Netlify runs the generator on every push and serves the built site.
+[build]
+  command = "python3 build.py"
+  publish = "dist/site"
