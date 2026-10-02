@@ -153,10 +153,10 @@ def predictor(d, race):
 <p>Enter the paces you can hold on race day, not your best training day. Splits update as you type.</p></div>
 <div class="fields">
 {dist_field}
-<div class="field"><label for="swimPace">Swim pace per 100</label><input id="swimPace" value="{d['swim']}" inputmode="numeric"><span class="hint">m:ss</span></div>
+<div class="field"><label for="swimPace">Swim pace per 100 (m:ss)</label><input id="swimPace" value="{d['swim']}" inputmode="numeric" placeholder="1:55"></div>
 <div class="field"><label for="swimUnit">Pool unit</label><select id="swimUnit"><option value="yd">Yards</option><option value="m">Meters</option></select></div>
 <div class="field"><label for="bikeMph">Bike speed (mph)</label><input id="bikeMph" type="number" step="0.1" min="5" value="{d['mph']}"></div>
-<div class="field"><label for="runPace">Run pace per mile</label><input id="runPace" value="{d['run']}" inputmode="numeric"><span class="hint">m:ss</span></div>
+<div class="field"><label for="runPace">Run pace per mile (m:ss)</label><input id="runPace" value="{d['run']}" inputmode="numeric" placeholder="9:30"></div>
 <div class="field"><label for="t1">T1 (min)</label><input id="t1" type="number" min="0" step="0.5" value="{d['t1']}"></div>
 <div class="field"><label for="t2">T2 (min)</label><input id="t2" type="number" min="0" step="0.5" value="{d['t2']}"></div>
 <div class="field"><label for="start">Your start time</label><input id="start" type="time" value="{d['start']}"></div>
