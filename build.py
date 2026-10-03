@@ -4,7 +4,7 @@ Outputs:
   dist/site/      full static site for Netlify or Vercel (drag the folder in)
   dist/preview/   same site, index body without the document wrapper, for the Claude artifact preview
 """
-import json, os, shutil, html
+import json, os, shutil, html, datetime
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(ROOT, "src")
@@ -15,85 +15,11 @@ DOMAIN = ""
 FONTS = ("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700"
          "&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600;700&display=swap")
 
-H = 3600
-RACES = [
-    {
-        "slug": "ironman-chattanooga",
-        "name": "IRONMAN Chattanooga",
-        "short": "Chattanooga 140.6",
-        "place": "Chattanooga, Tennessee",
-        "when": "Late September (2026 race was Sept 27)",
-        "dist": "full", "swimMi": 2.4, "bikeMi": 112, "runMi": 26.2,
-        "bikeGainFt": 4300, "runGainFt": 1150, "swimFactor": 0.9,
-        "cutoffs": {"swim": None, "bike": 10 * H, "total": 16.5 * H},
-        "cutoffNote": "Cutoffs shown are the last ones we could confirm (10 hours for swim, T1 and bike; 16:30 total from your own start). Check this year's athlete guide.",
-        "weather": "Often hot and humid. Plan for heat on the run.",
-        "legs": {
-            "Swim": "Point to point, downstream in the Tennessee River, finishing at Ross's Landing. The current usually makes this one of the faster IRONMAN swims, so the predictor takes 10% off your pool pace when course adjustments are on.",
-            "Bike": "A course introduced in 2024 with three loops on US-27 and a dedicated lane, about 4,300 ft of climbing over 112 miles. Steady effort matters more than chasing speed on the climbs.",
-            "Run": "Two loops through downtown, the Riverwalk, Veterans Bridge and the North Shore, about 1,150 ft of climbing. The North Shore hills come twice, so save something for the second loop.",
-        },
-        "title": "IRONMAN Chattanooga Race Planner: Finish Time and Fueling",
-        "desc": "Predict your IRONMAN Chattanooga finish time with course adjustments for the downstream swim and hilly bike and run, then build a carb and sodium plan.",
-    },
-    {
-        "slug": "ironman-70-3-chattanooga",
-        "name": "IRONMAN 70.3 Chattanooga",
-        "short": "Chattanooga 70.3",
-        "place": "Chattanooga, Tennessee",
-        "when": "Mid May (2026 race was May 17)",
-        "dist": "half", "swimMi": 1.4, "bikeMi": 56, "runMi": 13.1,
-        "bikeGainFt": 2500, "runGainFt": 550, "swimFactor": 0.9,
-        "cutoffs": {"swim": None, "bike": 5.5 * H, "total": 8.5 * H},
-        "cutoffNote": "Cutoffs shown are 5:30 for swim, T1 and bike and 8:30 total from your own start, plus intermediate cutoffs on the bike and run in past guides. Check this year's athlete guide.",
-        "weather": "Late spring heat is common. Water has typically been in the low 70s F, so a wetsuit is likely.",
-        "legs": {
-            "Swim": "Point to point, downriver in the Tennessee River to Ross's Landing. The 2026 race listed it at 1.4 miles; it was 1.2 miles in earlier years. The current helps.",
-            "Bike": "About 11 miles south of town, then a 34-mile loop in north Georgia past Chickamauga and along Lookout Mountain. Rolling, with roughly 2,500 ft of climbing.",
-            "Run": "Two loops through downtown, the Riverwalk and the North Shore, finishing at Ross's Landing. About 550 ft of climbing. In 2026 a temporary detour skipped the Walnut Street Bridge.",
-        },
-        "title": "IRONMAN 70.3 Chattanooga Race Planner: Finish Time and Fueling",
-        "desc": "Predict your IRONMAN 70.3 Chattanooga finish time with adjustments for the downriver swim and rolling north Georgia bike, then plan carbs and sodium.",
-    },
-    {
-        "slug": "ironman-70-3-north-carolina",
-        "name": "IRONMAN 70.3 North Carolina",
-        "short": "North Carolina 70.3",
-        "place": "Wilmington, North Carolina",
-        "when": "Mid to late October (2026 race is Oct 17)",
-        "dist": "half", "swimMi": 1.2, "bikeMi": 56, "runMi": 13.1,
-        "bikeGainFt": None, "runGainFt": None, "swimFactor": 1,
-        "cutoffs": {"swim": 70 * 60, "bike": 5.5 * H, "total": 8.5 * H},
-        "cutoffNote": "Cutoffs shown are the standard IRONMAN 70.3 limits (1:10 swim, 5:30 swim through bike, 8:30 total). Check this year's athlete guide.",
-        "weather": "Usually mild fall racing on the coast. Wind on the bike matters more than heat.",
-        "legs": {
-            "Swim": "In Banks Channel at Wrightsville Beach, connected to the Intracoastal Waterway. Tides and current vary by year, so the predictor uses your normal pace.",
-            "Bike": "Point to point from the beach out into the countryside across two counties and back into Wilmington over the Isabel Holmes Bridge. Mostly flat, so aero position and steady power pay off.",
-            "Run": "From downtown south along Front Street to Greenfield Lake, around the lake, then back to finish on Water Street across from Battleship North Carolina.",
-        },
-        "title": "IRONMAN 70.3 North Carolina (Wilmington) Race Planner",
-        "desc": "Predict your IRONMAN 70.3 North Carolina finish time in Wilmington, check cutoffs, and build a race day carb and sodium plan.",
-    },
-    {
-        "slug": "ironman-florida",
-        "name": "IRONMAN Florida",
-        "short": "Florida 140.6",
-        "place": "Panama City Beach, Florida",
-        "when": "Early November (2026 race is Nov 7)",
-        "dist": "full", "swimMi": 2.4, "bikeMi": 112, "runMi": 26.2,
-        "bikeGainFt": 1600, "runGainFt": 100, "swimFactor": 1,
-        "cutoffs": {"swim": 140 * 60, "bike": 10.5 * H, "total": 17 * H},
-        "cutoffNote": "Cutoffs shown are the standard IRONMAN limits (2:20 swim, 10:30 swim through bike, 17:00 total). Check this year's athlete guide.",
-        "weather": "Usually mild, but Gulf wind and chop can slow the swim and the open stretches of the bike.",
-        "legs": {
-            "Swim": "Two loops in the Gulf of Mexico off the beach. Conditions change year to year, from glassy to choppy, so the predictor uses your normal pace.",
-            "Bike": "Along the intracoastal waterways into Pine Log State Forest and back to the beach. About 1,600 ft of climbing, which is close to flat for a full.",
-            "Run": "Two loops past the beachfront hotels on Front Beach Road, one of the best courses for spectators. Nearly flat.",
-        },
-        "title": "IRONMAN Florida (Panama City Beach) Race Planner",
-        "desc": "Predict your IRONMAN Florida finish time, check the swim, bike and finish cutoffs, and build a full-distance carb and sodium plan.",
-    },
-]
+from races import RACES
+
+TODAY = datetime.date.today()
+MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"]
+
 
 DEFAULTS = {
     "full": {"swim": "2:00", "mph": "18", "run": "10:30", "t1": "8", "t2": "5", "start": "07:00", "carbBike": 80, "carbRun": 60},
@@ -127,7 +53,7 @@ def topbar(prefix):
 <a href="{prefix}index.html#predictor">Finish time</a>
 <a href="{prefix}index.html#fueling">Fueling</a>
 <a href="{prefix}index.html#sweat">Sweat rate</a>
-<a href="{prefix}index.html#races">Races</a>
+<a href="{prefix}races/index.html">Races</a>
 </nav></div></header>"""
 
 
@@ -202,25 +128,93 @@ def sweat():
 </div>"""
 
 
+def _d(iso):
+    return datetime.date.fromisoformat(iso) if iso else None
+
+
+def fmt_date(d, short=False):
+    m = MONTHS[d.month - 1]
+    return f"{m[:3] if short else m} {d.day}, {d.year}"
+
+
+def sort_key(r):
+    """Order races through the season by their next or most recent date."""
+    d = _d(r["d2027"]) or _d(r["d2026"])
+    return (d.month, d.day, r["name"]) if d else (13, 0, r["name"])
+
+
+def when_parts(r):
+    """(headline, detail) describing when the race happens, from today's point of view."""
+    d26, d27 = _d(r["d2026"]), _d(r["d2027"])
+    if d26 and d26 >= TODAY:
+        detail = f"2027: {fmt_date(d27)}" if d27 else "2027 date not yet announced"
+        return f"Next race {fmt_date(d26)}", detail
+    if d27:
+        label = r.get("d2027_label") or fmt_date(d27)
+        return label, "2027 date confirmed"
+    return "2027 date not yet announced", f"2026 race was {fmt_date(d26)}"
+
+
+def list_date(r):
+    d26, d27 = _d(r["d2026"]), _d(r["d2027"])
+    if d26 and d26 >= TODAY:
+        return fmt_date(d26, True), ""
+    if d27:
+        return (r.get("d2027_label") or fmt_date(d27, True)), ""
+    return f"Usually {MONTHS[d26.month - 1][:3]}", "tba"
+
+
+def climb(gain, terrain):
+    if gain:
+        return f"{gain:,} ft climbing"
+    return terrain or "Climbing not listed"
+
+
 def race_bib(r):
-    gain = f"{r['bikeGainFt']:,} ft" if r["bikeGainFt"] else "Mostly flat"
     total = r["cutoffs"]["total"]
+    head_, detail = when_parts(r)
     return f"""<div class="bib" aria-label="Course summary">
 <div><span class="k">Swim</span><span class="v">{r['swimMi']} mi</span></div>
-<div><span class="k">Bike</span><span class="v">{r['bikeMi']} mi</span><span class="s">{gain}</span></div>
-<div><span class="k">Run</span><span class="v">{r['runMi']} mi</span><span class="s">{(str(r['runGainFt']) + ' ft') if r['runGainFt'] else 'Mostly flat'}</span></div>
+<div><span class="k">Bike</span><span class="v">{r['bikeMi']} mi</span><span class="s">{climb(r['bikeGainFt'], r['bikeTerrain'])}</span></div>
+<div><span class="k">Run</span><span class="v">{r['runMi']} mi</span><span class="s">{climb(r['runGainFt'], r['runTerrain'])}</span></div>
 <div><span class="k">Course limit</span><span class="v">{int(total // 3600)}:{int(total % 3600 // 60):02d}</span><span class="s">from your start</span></div>
-<div><span class="k">When</span><span class="s" style="color:var(--ink);font-size:1rem">{r['when']}</span></div>
+<div class="when"><span class="k">When</span><span class="w">{head_}</span><span class="s">{detail}</span></div>
 </div>"""
 
 
-def race_cards(prefix):
-    cards = ""
-    for r in RACES:
-        cards += f"""<a class="race-card" href="{prefix}races/{r['slug']}.html">
-<span class="meta">{r['place'].upper()}</span><strong>{r['name']}</strong>
-<span class="meta">{r['when']}</span></a>"""
-    return f'<section id="races"><h2>Race planners</h2><p class="lede">Course specific pages with the distances, climbing and cutoffs already loaded.</p><div class="races">{cards}</div></section>'
+def race_rows(races, prefix):
+    rows = ""
+    for r in sorted(races, key=sort_key):
+        date, cls = list_date(r)
+        search = f"{r['name']} {r['place']} {r['state']}".lower()
+        rows += (f'<a class="race-row" href="{prefix}races/{r["slug"]}.html" data-search="{html.escape(search)}">'
+                 f'<span class="rn">{r["name"]}</span><span class="rp">{r["place"]}</span>'
+                 f'<span class="rd {cls}">{date}</span></a>')
+    return rows
+
+
+def race_list(prefix, intro=True):
+    fulls = [r for r in RACES if r["dist"] == "full"]
+    halves = [r for r in RACES if r["dist"] == "half"]
+    intro_html = (f'<h2>Race planners</h2><p class="lede">{len(RACES)} US IRONMAN and IRONMAN 70.3 races with the distances, '
+                  'climbing and cutoffs already loaded. Dates show the next race, or the 2027 date once IRONMAN announces it.</p>') if intro else ""
+    return f"""<section id="races" class="race-index">
+<div class="race-index-head">{intro_html}
+<div class="field race-filter"><label for="raceFilter">Find a race</label><input id="raceFilter" type="search" placeholder="Race, city or state" autocomplete="off"></div></div>
+<div class="race-group"><h3>Full IRONMAN <span class="count">{len(fulls)}</span></h3><div class="race-rows">{race_rows(fulls, prefix)}</div></div>
+<div class="race-group"><h3>IRONMAN 70.3 <span class="count">{len(halves)}</span></h3><div class="race-rows">{race_rows(halves, prefix)}</div></div>
+<p class="note" id="raceFilterEmpty" hidden>No races match that search.</p>
+</section>"""
+
+
+def related(r, prefix):
+    same = [x for x in RACES if x["slug"] != r["slug"] and x["dist"] == r["dist"] and x["region"] == r["region"]]
+    if len(same) < 4:
+        same += [x for x in RACES if x["slug"] != r["slug"] and x["dist"] == r["dist"] and x not in same][: 4 - len(same)]
+    kind = "full IRONMAN" if r["dist"] == "full" else "70.3"
+    return f"""<section class="race-index"><h2>More {kind} planners</h2>
+<div class="race-rows">{race_rows(same[:8], prefix)}</div>
+<p><a href="{prefix}races/index.html">See all {len(RACES)} race planners</a></p></section>"""
 
 
 def page_doc(head_html, body_html, script_src, data=None, wrapper=True):
@@ -246,7 +240,7 @@ def build_index(wrapper):
 <p class="lede">Predict your splits, check them against the cutoffs, and turn the result into a carb, fluid and sodium plan. Free, no sign up.</p></div>
 <section>{predictor(d, None)}</section>
 <section class="two-up">{fueling(d)}{sweat()}</section>
-{race_cards('')}
+{race_list('')}
 </main>
 {footer()}"""
     h = head(f"{SITE_NAME}: Triathlon Finish Time, Fueling and Sweat Rate Calculators",
@@ -257,22 +251,45 @@ def build_index(wrapper):
 def build_race(r):
     d = DEFAULTS[r["dist"]]
     legs = "".join(f'<div class="leg"><h3>{k}</h3><p>{v}</p></div>' for k, v in r["legs"].items())
+    note_html = f'<p class="callout">{r["note"]}</p>' if r.get("note") else ""
+    weather_html = f'<p class="note"><strong>Race notes:</strong> {r["weather"]}</p>' if r.get("weather") else ""
+    kind = "IRONMAN 70.3" if r["dist"] == "half" else "full IRONMAN"
+    title = f"{r['name']} Race Planner: Finish Time, Cutoffs and Fueling"
+    desc = (f"Plan {r['name']} in {r['place']}: predict your finish time with course details for this {kind}, "
+            f"check the cutoffs, and build a carb and sodium plan. Free, no sign up.")
     body = f"""{topbar('../')}
 <main class="wrap">
-<div class="hero"><span class="eyebrow">{r['place']} · Race planner</span>
+<div class="hero"><span class="eyebrow">{r['place']} · {kind} race planner</span>
 <h1>{r['name']}</h1>
 <p class="lede">Finish time, cutoff check and fueling plan built for this course.</p></div>
 {race_bib(r)}
+{note_html}
 <section>{predictor(d, r)}
 <p class="callout">{r['cutoffNote']}</p></section>
 <section><h2>The course</h2><div class="legs">{legs}</div>
-<p class="note"><strong>Weather:</strong> {r['weather']}</p></section>
+<p class="note">Course details describe the most recent race we could verify and can change from year to year.</p>
+{weather_html}</section>
 <section class="two-up">{fueling(d)}{sweat()}</section>
-{race_cards('../')}
+{related(r, '../')}
 </main>
 {footer()}"""
     data = {k: r[k] for k in ("swimMi", "bikeMi", "runMi", "bikeGainFt", "runGainFt", "swimFactor", "cutoffs")}
-    return page_doc(head(r["title"], r["desc"], "", "../", f"races/{r['slug']}.html"), body, "../assets/app.js", data, True)
+    return page_doc(head(title, desc, "", "../", f"races/{r['slug']}.html"), body, "../assets/app.js", data, True)
+
+
+def build_race_index():
+    body = f"""{topbar('../')}
+<main class="wrap">
+<div class="hero"><span class="eyebrow">2026 and 2027 seasons</span>
+<h1>Every US IRONMAN and 70.3 race planner</h1>
+<p class="lede">Pick your race to get a finish time prediction, cutoff check and fueling plan with that course already loaded. {len(RACES)} races, with 2027 dates shown as IRONMAN announces them.</p></div>
+{race_list('../', intro=False)}
+</main>
+{footer()}"""
+    h = head(f"US IRONMAN and 70.3 Race Planners for 2027 | {SITE_NAME}",
+             f"Free race planners for {len(RACES)} US IRONMAN and IRONMAN 70.3 triathlons: finish time, cutoffs and fueling for each course, with 2027 dates as they are announced.",
+             "", "../", "races/")
+    return page_doc(h, body, "../assets/app.js", None, True)
 
 
 def main():
@@ -290,13 +307,15 @@ def main():
         for r in RACES:
             with open(os.path.join(base, "races", r["slug"] + ".html"), "w") as f:
                 f.write(build_race(r))
+        with open(os.path.join(base, "races", "index.html"), "w") as f:
+            f.write(build_race_index())
     site = os.path.join(OUT, "site")
     with open(os.path.join(site, "404.html"), "w") as f:
         body = f"""{topbar('/')}<main class="wrap"><div class="hero"><span class="eyebrow">404</span>
 <h1>That page took a wrong turn</h1><p class="lede">The page you wanted is not here. Try the <a href="/index.html">calculators</a> or pick a race below.</p></div>
-{race_cards('/')}</main>{footer()}"""
+{race_list('/')}</main>{footer()}"""
         f.write(page_doc(head(f"Page not found | {SITE_NAME}", "Page not found.", "", "/"), body, "/assets/app.js", None, True))
-    urls = ["index.html"] + [f"races/{r['slug']}.html" for r in RACES]
+    urls = ["index.html", "races/"] + [f"races/{r['slug']}.html" for r in sorted(RACES, key=sort_key)]
     with open(os.path.join(site, "robots.txt"), "w") as f:
         f.write("User-agent: *\nAllow: /\n" + (f"Sitemap: {DOMAIN}/sitemap.xml\n" if DOMAIN else ""))
     if DOMAIN:  # a sitemap needs full URLs, so it is only written once the domain is set
@@ -305,7 +324,7 @@ def main():
             for u in urls:
                 f.write(f"  <url><loc>{DOMAIN}/{'' if u == 'index.html' else u}</loc></url>\n")
             f.write("</urlset>\n")
-    print("built", urls)
+    print(f"built {len(urls)} pages ({len(RACES)} races)")
 
 
 if __name__ == "__main__":

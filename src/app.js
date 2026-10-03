@@ -219,6 +219,22 @@
     });
   }
 
+  /* ---------- Race list filter ---------- */
+  var filter = $("raceFilter");
+  if (filter) {
+    filter.addEventListener("input", function () {
+      var q = this.value.trim().toLowerCase(), shown = 0;
+      document.querySelectorAll(".race-row").forEach(function (row) {
+        var hit = !q || row.getAttribute("data-search").indexOf(q) !== -1;
+        row.hidden = !hit; if (hit) shown++;
+      });
+      document.querySelectorAll(".race-group").forEach(function (g) {
+        g.hidden = !g.querySelector(".race-row:not([hidden])");
+      });
+      if ($("raceFilterEmpty")) $("raceFilterEmpty").hidden = shown > 0;
+    });
+  }
+
   // expose pure functions for testing in Node
   if (typeof module !== "undefined") module.exports = { parseClock: parseClock, fmt: fmt };
 

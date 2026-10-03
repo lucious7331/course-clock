@@ -8,7 +8,8 @@ The pages are generated, not hand-written. Edit the sources, never the built HTM
 
 | File | What it controls |
 |---|---|
-| `build.py` | Page templates, race data (`RACES` list), default inputs, the `DOMAIN` setting |
+| `races.py` | Every race: dates, distances, climbing, course notes, cutoffs |
+| `build.py` | Page templates, race list, date logic, default inputs, the `DOMAIN` setting |
 | `src/style.css` | All styling for every page |
 | `src/app.js` | All calculator math |
 | `src/favicon.svg` | Browser tab icon |
@@ -17,21 +18,33 @@ Netlify runs `python3 build.py` on every push and publishes `dist/site/` (see `n
 
 To build locally: `python3 build.py`, then open `dist/site/index.html`.
 
-## Adding a race
+## Adding or updating a race
 
-Add one entry to the `RACES` list in `build.py`. Fields:
+Each race is one `race(...)` call in `races.py`:
 
-- `slug`: URL name, e.g. `ironman-lake-placid`
-- `dist`: `half` or `full` (sets default paces)
-- `swimMi`, `bikeMi`, `runMi`: course distances in miles
-- `bikeGainFt`, `runGainFt`: climbing in feet, or `None` if flat or unknown
-- `swimFactor`: `0.9` for a current-assisted swim, otherwise `1`
-- `cutoffs`: seconds from the athlete's own start for `swim`, `bike` (swim + T1 + bike) and `total`; `None` if unknown
-- `cutoffNote`: plain statement of where the cutoffs came from
-- `legs`: short Swim, Bike, Run descriptions
-- `title`, `desc`: search result title and description
+```python
+race("ironman-70-3-example", "IRONMAN 70.3 Example", "City", "ST", "half",
+     "2026-06-07",      # 2026 date, or None
+     "2027-06-06",      # 2027 date, or None until announced
+     "Swim notes", "Bike notes", "Run notes",
+     bikeGainFt=1800,   # only if a source gives it, otherwise leave it out
+     swimFactor=0.9,    # only for current-assisted swims
+     weather="Optional race notes")
+```
+
+- Distances default to 1.2/56/13.1 (`half`) or 2.4/112/26.2 (`full`). Override with `swimMi=` when a course differs.
+- Cutoffs default to the standard IRONMAN limits with a note saying so. Override with `cutoffs=` and `cutoffNote=` when a guide differs.
+- Unknown climbing: leave `bikeGainFt` and `runGainFt` out. Add `bikeTerrain="Flat"` etc. only when a source describes it.
+- The page decides what date to show at build time: an upcoming 2026 race first, then the 2027 date, then "2027 date not yet announced".
 
 Only publish facts that can be traced to a source. If a cutoff comes from an older athlete guide, say so in `cutoffNote`.
+
+## When IRONMAN releases the 2027 calendar
+
+1. Fill in `d2027` for every race that has a date.
+2. Remove races that were dropped; add new ones.
+3. Re-check courses that changed.
+4. Push. Netlify rebuilds every page.
 
 ## Course adjustment model
 
