@@ -309,3 +309,32 @@ RACES = [
          weather="Late August in Chattanooga is usually hot and humid. Check the wetsuit rule in the athlete guide closer to the race.",
          short="70.3 Worlds 2027"),
 ]
+
+# Official IRONMAN race pages, taken from the "Register / Details" links on RaceCenter
+# (October 2026). Races without a confirmed URL fall back to IRONMAN's race finder.
+IRONMAN_FINDER = "https://www.ironman.com/races"
+OFFICIAL = {
+    "ironman-texas": "/im-texas", "ironman-jacksonville": "/races/im-jacksonville",
+    "ironman-lake-placid": "/im-lake-placid", "ironman-wisconsin": "/races/im-wisconsin",
+    "ironman-maryland": "/races/im-maryland", "ironman-chattanooga": "/im-chattanooga",
+    "ironman-california": "/im-california", "ironman-florida": "/im-florida",
+    "ironman-70-3-oceanside": "/im703-oceanside", "ironman-70-3-texas": "/im703-texas",
+    "ironman-70-3-dallas-little-elm": "/races/im703-dallas-little-elm", "ironman-70-3-gulf-coast": "/races/im703-gulf-coast",
+    "ironman-70-3-chattanooga": "/im703-chattanooga", "ironman-70-3-hawaii": "/im703-hawaii",
+    "ironman-70-3-omaha": "/races/im703-omaha", "ironman-70-3-western-massachusetts": "/races/im703-western-massachusetts",
+    "ironman-70-3-boulder": "/im703-boulder", "ironman-70-3-eagleman": "/im703-eagleman",
+    "ironman-70-3-coeur-dalene": "/races/im703-coeur-dalene", "ironman-70-3-muncie": "/races/im703-muncie",
+    "ironman-70-3-musselman": "/im703-musselman", "ironman-70-3-new-mexico": "/races/im703-ruidoso-new-mexico",
+    "ironman-70-3-oregon": "/im703-oregon", "ironman-70-3-ohio": "/races/im703-ohio",
+    "ironman-70-3-boise": "/im703-boise", "ironman-70-3-maine": "/races/im703-maine",
+    "ironman-70-3-louisville": "/im703-louisville", "ironman-70-3-northern-california": "/races/im703-northern-california",
+    "ironman-70-3-wisconsin": "/races/im703-wisconsin", "ironman-70-3-santa-cruz": "/im703-santa-cruz",
+    "ironman-70-3-washington-tri-cities": "/races/im703-washington-tri-cities", "ironman-70-3-michigan": "/races/im703-michigan",
+    "ironman-70-3-new-york": "/races/im703-new-york", "ironman-70-3-augusta": "/im703-augusta",
+    "ironman-70-3-waco": "/im703-waco", "ironman-70-3-north-carolina": "/im703-north-carolina",
+    "ironman-70-3-indian-wells-la-quinta": "/im703-indian-wells", "ironman-70-3-florida": "/im703-florida",
+}
+for _r in RACES:
+    _p = OFFICIAL.get(_r["slug"])
+    _r["official"] = "https://www.ironman.com" + _p if _p else IRONMAN_FINDER
+    _r["officialExact"] = bool(_p)

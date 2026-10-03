@@ -252,6 +252,10 @@ def build_race(r):
     d = DEFAULTS[r["dist"]]
     legs = "".join(f'<div class="leg"><h3>{k}</h3><p>{v}</p></div>' for k, v in r["legs"].items())
     note_html = f'<p class="callout">{r["note"]}</p>' if r.get("note") else ""
+    official_label = ("Official race page on ironman.com: course maps, athlete guide and registration"
+                      if r["officialExact"] else "Find the official race page in IRONMAN's race finder on ironman.com")
+    official_html = (f'<p class="official"><a href="{r["official"]}" target="_blank" rel="noopener">'
+                     f'{official_label}<span aria-hidden="true"> ↗</span></a></p>')
     weather_html = f'<p class="note"><strong>Race notes:</strong> {r["weather"]}</p>' if r.get("weather") else ""
     kind = "IRONMAN 70.3" if r["dist"] == "half" else "full IRONMAN"
     title = f"{r['name']} Race Planner: Finish Time, Cutoffs and Fueling"
@@ -263,6 +267,7 @@ def build_race(r):
 <h1>{r['name']}</h1>
 <p class="lede">Finish time, cutoff check and fueling plan built for this course.</p></div>
 {race_bib(r)}
+{official_html}
 {note_html}
 <section>{predictor(d, r)}
 <p class="callout">{r['cutoffNote']}</p></section>
